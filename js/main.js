@@ -3,140 +3,98 @@ const todos = [
     { id: 2, text: 'Todo 2', completed: false },
     { id: 3, text: 'Todo 3', completed: false }
 ]
+const todoList = document.querySelector('.todo-list');
 
-const todoListEl = document.querySelector('.todo-list');
-let newData;
+renderTodos(todos, todoList);
 
-renderTodoList(todos, todoListEl);
+function renderTodos(data, parentEl) {
 
-function renderTodoList(data, parentEl) {
+    parentEl.innerHTML = '';
 
-    let todoChksEls;
+    data.forEach(function (el) {
 
-    let todoItems = data.map(function (item, index) {
+        const todo = document.createElement('li');
+        const index = document.createElement('span');
+        const inp = document.createElement('input');
+        const text = document.createElement('p');
+        const btn = document.createElement('button');
 
-        const todoItem = `
-            <li class="todo-item" data-id="${item.id}">
-                <span class="todo-item__number mr-1">${index + 1}</span>
-                <input 
-                    class="todo-item__completed mr-1" 
-                    type="checkbox" ${item.completed ? 'checked' : ''}>
-                <p class="todo-item__text mr-1 ${item.completed ? 'todo-item__text_completed' : ''}">${item.text}</p>
-                <button class="todo-item__delBtn">del</button>
-            </li>       
-`;
-        return todoItem
-    }).join('');
+        todo.className = 'todo-item';
+        todo.dataset.id = el.id;
 
-    parentEl.innerHTML = todoItems;
+        index.className = 'todo-item__number mr-1';
+        index.innerHTML = el.id;
 
-    todoChksEls = document.querySelectorAll('.todo-item__completed');
+        inp.className = 'todo-item__completed mr-1';
+        inp.type = 'checkbox';
+        inp.checked = el.completed;
 
-    todoChksEls.forEach(function (el) {
+        text.className = `todo-item__text mr-1 ${el.completed ? 'todo-item__text_completed' : ''}`;
+        text.innerHTML = el.text;
+
+        btn.className = 'todo-item__delBtn';
+        btn.innerHTML = 'DEL';
+
+        parentEl.append(todo);
+        todo.append(index, inp, text, btn)
+    });
+    const todoItemCompleted = document.querySelectorAll('.todo-item__completed');
+
+    todoItemCompleted.forEach(function (el) {
         el.onchange = function () {
-
             const id = this.parentElement.dataset.id;
-            const todo = data.find(function (el) {
-                return el.id == id;
+            const todo = data.find(function (item) {
+                return item.id == id;
             });
-            if (!todo) {
-                return;
-            }
-
             todo.completed = !todo.completed;
-
-            if (typeof newData === 'undefined') {
-                renderTodoList(data, todoListEl);
-            } else renderTodoList(newData, todoListEl);
+            renderTodos(data, parentEl);
         }
-    })
-
+    });
     const btnsDel = document.querySelectorAll('.todo-item__delBtn');
 
     btnsDel.forEach(function (el) {
         el.onclick = function () {
-
             const id = this.parentElement.dataset.id;
-            const todo = data.find(function (el) {
-                return el.id == id;
+            const todoIndex = data.findIndex(function (item) {
+                return item.id == id;
             });
-            newData = data.filter(function (item) {
-                return item !== todo;
-            })
-            renderTodoList(newData, todoListEl);
+            if (todoIndex !== -1) {
+                data.splice(todoIndex, 1); // Удаляем элемент из массива
+
+                // Пересчитываем индексы для оставшихся элементов
+                data.forEach(function (item, index) {
+                    item.id = index + 1;
+                });
+                renderTodos(data, parentEl); // Перерендериваем список
+            }
         }
-    })
-}
+    });
 
-const btnAdd = document.querySelector('.add-btn');
-const addInput = document.querySelector('.add-input');
+    const btnAdd = document.querySelector('.add-btn');
+    const inpAdd = document.querySelector('.add-input');
 
-btnAdd.onclick = function () {
+    btnAdd.onclick = function () {
 
-    const newText = addInput.value.trim();
+        const newTodo = {
+            id: data.length + 1,
+            text: inpAdd.value.trim(),
+            completed: false,
+        }
+        data.push(newTodo);
 
-    if (newText === '') {
-        alert('Введите текст для нового дела');
-        return;
-    }
-
-    const newId = todos.length + 1;
-
-    const newTodo = {
-        id: newId,
-        text: newText,
-        completed: false
+        renderTodos(data, parentEl)
     };
 
-    todos.push(newTodo);
+    const chkOnlyCompleted = document.querySelector('.chk-only-completed');
 
-    addInput.value = '';
-
-    if (typeof newData !== 'undefined') {
-        newData.push(newTodo);
-    };
-
-    let filteredTodos;
-
-    if (typeof newData === 'undefined') {
-
-        if (checkOnlyCompleted.checked) {
-            filteredTodos = todos.filter(el => el.completed);
-        } else {
-            filteredTodos = todos;
-        }
-        renderTodoList(filteredTodos, todoListEl);
-    }
-    else {
-        const filteredNewData = checkOnlyCompleted.checked
-            ? newData.filter(el => el.completed)
-            : newData;
-        renderTodoList(filteredNewData, todoListEl);
-    }
-}
-
-const checkOnlyCompleted = document.querySelector('.chk-only-completed');
-
-checkOnlyCompleted.onchange = function () {
-
-    let checkedTodos;
-
-    if (checkOnlyCompleted.checked === true) {
-        if (typeof newData === 'undefined') {
-            checkedTodos = todos.filter(function (el) {
+    chkOnlyCompleted.onchange = function () {
+        if (chkOnlyCompleted.checked) {
+            let newData = data.filter(function (el) {
                 return el.completed === true;
-            })
-            renderTodoList(checkedTodos, todoListEl);
+            });
+            renderTodos(newData, parentEl);
         } else {
-            checkedTodos = newData.filter(function (el) {
-                return el.completed === true;
-            })
-            renderTodoList(checkedTodos, todoListEl);
+            renderTodos(todos, parentEl);
         }
-    } else {
-        if (typeof newData === 'undefined') {
-            renderTodoList(todos, todoListEl)
-        } else renderTodoList(newData, todoListEl);
     }
-
-}
+};
