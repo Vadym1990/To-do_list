@@ -88,13 +88,19 @@ function renderTodos(data, parentEl) {
     const chkOnlyCompleted = document.querySelector('.chk-only-completed');
 
     chkOnlyCompleted.onchange = function () {
+        let filteredData;
+
         if (chkOnlyCompleted.checked) {
-            let newData = data.filter(function (el) {
+            filteredData = todos.filter(function (el) {
                 return el.completed === true;
             });
-            renderTodos(newData, parentEl);
+            filteredData.forEach(function (item, index) {
+                item.id = index + 1;
+            });
         } else {
-            renderTodos(todos, parentEl);
+            filteredData = todos;
         }
+
+        renderTodos(filteredData, parentEl);
     }
 };
