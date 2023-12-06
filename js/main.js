@@ -55,18 +55,13 @@ function renderTodos(data, parentEl) {
     btnsDel.forEach(function (el) {
         el.onclick = function () {
             const id = this.parentElement.dataset.id;
-            const todoIndex = data.findIndex(function (item) {
-                return item.id == id;
+            let newData = data.filter(function (item) {
+                return item.id != id;
             });
-            if (todoIndex !== -1) {
-                data.splice(todoIndex, 1); // Удаляем элемент из массива
-
-                // Пересчитываем индексы для оставшихся элементов
-                data.forEach(function (item, index) {
-                    item.id = index + 1;
-                });
-                renderTodos(data, parentEl); // Перерендериваем список
-            }
+            newData.forEach(function (item, index) {
+                item.id = index + 1;
+            });
+            renderTodos(newData, parentEl);
         }
     });
 
